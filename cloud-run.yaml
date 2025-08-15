@@ -1,0 +1,111 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ai-test-solver
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        # CPU and memory configuration
+        run.googleapis.com/cpu: "2"
+        run.googleapis.com/memory: "4Gi"
+        # Scaling configuration
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "10"
+        # Request timeout (5 minutes to handle processing time)
+        run.googleapis.com/timeout: "300s"
+        # Concurrency
+        run.googleapis.com/cpu-throttling: "false"
+    spec:
+      containerConcurrency: 10
+      containers:
+      - image: gcr.io/PROJECT_ID/ai-test-solver:latest
+        ports:
+        - containerPort: 8000
+        env:
+        # Application config
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: API_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: api-secret-key
+        
+        # Database config
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets  
+              key: supabase-url
+        - name: SUPABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: supabase-key
+        - name: SUPABASE_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: supabase-service-key
+              
+        # Google Cloud config
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        - name: GOOGLE_CLOUD_STORAGE_BUCKET
+          value: "PROJECT_ID-test-files"
+        - name: GOOGLE_CUSTOM_SEARCH_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: google-search-api-key
+        - name: GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: google-search-engine-id
+              
+        # OpenAI config
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-test-solver-secrets
+              key: openai-api-key
+        - name: OPENAI_MODEL
+          value: "gpt-4o-mini"
+          
+        # Processing config
+        - name: MAX_PROCESSING_TIME_SECONDS
+          value: "300"
+        - name: MAX_CONCURRENT_QUESTIONS
+          value: "10"
+        - name: MAX_FILE_SIZE_MB
+          value: "50"
+          
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+          requests:
+            cpu: "1000m"  
+            memory: "2Gi"
+            
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+          
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 10
+          timeoutSeconds: 10

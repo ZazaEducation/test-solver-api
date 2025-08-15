@@ -1,0 +1,56 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.pytest_cache
+nosetests.xml
+.coverage
+htmlcov
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.env
+.env.local
+.env.*.local
+credentials/
+uploads/
+logs/
+*.log
+
+# Documentation
+docs/
+README.md
+CHANGELOG.md
+
+# Development
+tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
